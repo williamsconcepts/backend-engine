@@ -1,7 +1,9 @@
 import express from 'express';
+import cors from 'cors'
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -9,6 +11,7 @@ app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()}  ${req.method} ${req.url}`);
   next();
 });
+
 
 app.get('/', (_req, res) => {
   res.json({
