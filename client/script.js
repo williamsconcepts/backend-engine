@@ -1,0 +1,542 @@
+const API = "http://localhost:4000";
+
+/* ===========================
+   SERVER TIME (SSE)
+=========================== */
+
+const timeElement = document.getElementById("server-time");
+
+const eventSource = new EventSource(API + "/sse");
+
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  timeElement.innerText = data.date + " " + data.time;
+};
+
+/* ===========================
+   AUTHENTICATION
+=========================== */
+
+const modal = document.getElementById("authModal");
+
+const loginBtn = document.getElementById("loginOpenBtn");
+
+const registerBtn = document.getElementById("registerOpenBtn");
+
+const closeBtn = document.querySelector(".close-modal");
+
+const submitBtn = document.getElementById("submitAuth");
+
+const modalTitle = document.getElementById("modalTitle");
+
+const registerFields = document.getElementById("registerFields");
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+const titleInput = document.getElementById("title");
+
+const contentInput = document.querySelector(".editor-content");
+
+const categoryInput = document.getElementById("category");
+
+const publishBtn = document.getElementById("publishBtn");
+
+const postsContainer = document.getElementById("postsContainer");
+
+let mode = "login";
+
+if (logoutBtn) {
+  logoutBtn.onclick = () => {
+    localStorage.removeItem("accessToken");
+    location.reload();
+  };
+}
+
+loginBtn.onclick = () => {
+  mode = "login";
+
+  modal.classList.add("active");
+
+  modalTitle.innerText = "Login";
+
+  submitBtn.innerText = "Login";
+
+  registerFields.style.display = "none";
+};
+
+registerBtn.onclick = () => {
+  mode = "register";
+
+  modal.classList.add("active");
+
+  modalTitle.innerText = "Register";
+
+  submitBtn.innerText = "Create Account";
+
+  registerFields.style.display = "block";
+};
+
+closeBtn.onclick = () => {
+  modal.classList.remove("active");
+};
+
+submitBtn.onclick = async () => {
+  const email = document.getElementById("email").value;
+
+  const password = document.getElementById("password").value;
+
+  const name = document.getElementById("name").value;
+
+  let url = "/user/login";
+
+  let body = { email, password };
+
+  if (mode === "register") {
+    url = "/user/create";
+
+    body = {
+      name,
+
+      email,
+
+      password,
+    };
+  }
+
+  const req = await fetch(API + url, {
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    body: JSON.stringify(body),
+  });
+
+  const res = await req.json();
+
+  document.getElementById("authMessage").innerText = res.message;
+
+  if (req.ok && mode === "login") {
+    localStorage.setItem("accessToken", res.accessToken);
+
+    loginSuccess(email);
+    loadCategories();
+
+    modal.classList.remove("active");
+  }
+};
+
+function loginSuccess(email) {
+  loginBtn.style.display = "none";
+
+  registerBtn.style.display = "none";
+
+  document.getElementById("userMenu").style.display = "flex";
+
+  document.getElementById("userName").innerText = email;
+
+  document.getElementById("avatar").innerText = email
+    .substring(0, 2)
+    .toUpperCase();
+}
+
+const token = localStorage.getItem("accessToken");
+
+if (token) {
+  const user = JSON.parse(atob(token));
+
+  loginSuccess(user.email);
+
+  loadCategories();
+
+  loadPosts();
+
+  loadPopularPosts();
+}
+
+document.getElementById("logoutBtn").onclick = () => {
+  localStorage.removeItem("accessToken");
+
+  location.reload();
+};
+
+/* ===========================
+   CATEGORIES
+=========================== */
+
+async function loadCategories() {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) return;
+
+  try {
+    const req = await fetch(`${API}/categories`, {
+      headers: {
+        Authorization: token,
+      },
+    });
+
+    if (!req.ok) {
+      const error = await req.json();
+      console.log(error);
+      alert(error.message);
+      return;
+    }
+
+    const categories = await req.json();
+
+    console.log("Categories:", categories);
+
+    const categorySelect = document.getElementById("category");
+    const categoryList = document.getElementById("categoryList");
+
+    // Populate dropdown
+    if (categorySelect) {
+      categorySelect.innerHTML = '<option value="">Select a category</option>';
+
+      categories.forEach((category) => {
+        const option = document.createElement("option");
+
+        option.value = category.id;
+
+        option.textContent = category.title;
+
+        categorySelect.appendChild(option);
+      });
+    }
+
+    // Populate sidebar
+    if (categoryList) {
+      categoryList.innerHTML =
+        '<div class="category-item active">All Posts</div>';
+
+      categories.forEach((category) => {
+        const div = document.createElement("div");
+
+        div.className = "category-item";
+
+        div.dataset.id = category.id;
+
+        div.textContent = category.title;
+
+        div.addEventListener("click", () => {
+          document
+            .querySelectorAll(".category-item")
+            .forEach((item) => item.classList.remove("active"));
+
+          div.classList.add("active");
+
+          console.log("Selected category:", category.id);
+        });
+
+        categoryList.appendChild(div);
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+/* ===========================
+   POSTS
+=========================== */
+
+publishBtn.addEventListener("click", async () => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    alert("Please login first.");
+
+    return;
+  }
+
+  const title = titleInput.value.trim();
+
+  const postContent = contentInput.innerText.trim();
+
+  const categoryId = categoryInput.value;
+
+  if (!title || !postContent || !categoryId) {
+    alert("Please complete all fields.");
+
+    return;
+  }
+
+  try {
+    const req = await fetch(`${API}/posts/create`, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+
+        Authorization: token,
+      },
+
+      body: JSON.stringify({
+        title,
+
+        postContent,
+
+        categoryId,
+      }),
+    });
+
+    const res = await req.json();
+
+    alert(res.message);
+
+    if (req.ok) {
+      titleInput.value = "";
+
+      contentInput.innerHTML = "";
+
+      categoryInput.selectedIndex = 0;
+
+      loadPosts();
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+async function loadPosts() {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) return;
+
+  try {
+    const req = await fetch(`${API}/posts`, {
+      headers: {
+        Authorization: token,
+      },
+    });
+
+    const posts = await req.json();
+
+    const postsContainer = document.getElementById("postsContainer");
+
+    postsContainer.innerHTML = "";
+
+    posts.forEach((post) => {
+      const article = document.createElement("article");
+
+      article.className = "card";
+
+      article.innerHTML = `
+                <div class="post-header-row">
+                    <div>
+                        <h3 class="post-title">${post.title}</h3>
+
+                        <div class="post-meta">
+                            📅 ${new Date(post.created_at).toLocaleDateString()}
+                            &nbsp;&bull;&nbsp;
+                            📂 ${post.category}
+                        </div>
+                    </div>
+                </div>
+
+                <p class="post-body">
+                    ${post.postContent}
+                </p>
+
+               <div class="post-actions">
+
+    <button
+        class="btn btn-outline like-btn"
+        onclick="likePost(${post.id})"
+    >
+        ❤️ ${post.likes} Likes
+    </button>
+
+    <span>
+        💬 ${post.comments.length} Comments
+    </span>
+
+</div>
+
+                <div class="comments">
+
+    <h4>Comments</h4>
+
+    ${
+      post.comments.length
+        ? post.comments
+            .map(
+              (comment) => `
+            <div class="comment">
+
+                <strong>${comment.userName}</strong>
+
+                <p>${comment.comment}</p>
+
+            </div>
+        `,
+            )
+            .join("")
+        : "<p>No comments yet.</p>"
+    }
+
+    <div class="comment-form">
+
+        <input
+            type="text"
+            id="name-${post.id}"
+            placeholder="Your name"
+        >
+
+        <textarea
+            id="comment-${post.id}"
+            placeholder="Write a comment..."
+        ></textarea>
+
+        <button
+            class="btn btn-primary"
+            onclick="addComment(${post.id})"
+        >
+            Post Comment
+        </button>
+
+    </div>
+
+</div>
+            `;
+
+      postsContainer.appendChild(article);
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+/* ===========================
+   POPULA POSTS
+=========================== */
+async function loadPopularPosts() {
+  try {
+    const req = await fetch(`${API}/posts/popular`);
+
+    const posts = await req.json();
+
+    const popular = document.getElementById("popularPosts");
+
+    popular.innerHTML = "";
+
+    posts.forEach((post) => {
+      popular.innerHTML += `
+
+                <div class="popular-post">
+
+                    <div>
+
+                        <p class="popular-post-title">
+
+                            ${post.title}
+
+                        </p>
+
+                        <p class="popular-post-date">
+
+                            ❤️ ${post.likes} Likes
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+/* ===========================
+   COMMENTS
+=========================== */
+
+async function addComment(postId) {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    alert("Please login.");
+
+    return;
+  }
+
+  const userName = document.getElementById(`name-${postId}`).value.trim();
+
+  const comment = document.getElementById(`comment-${postId}`).value.trim();
+
+  if (!userName || !comment) {
+    alert("Please complete all fields.");
+
+    return;
+  }
+
+  try {
+    const req = await fetch(`${API}/comment/create`, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+
+        Authorization: token,
+      },
+
+      body: JSON.stringify({
+        postId,
+
+        userName,
+
+        comment,
+      }),
+    });
+
+    const res = await req.json();
+
+    alert(res.message);
+
+    if (req.ok) {
+      loadPosts();
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+/* ===========================
+   LIKES
+=========================== */
+
+async function likePost(id) {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    alert("Please login.");
+
+    return;
+  }
+
+  try {
+    const req = await fetch(`${API}/posts/${id}/like`, {
+      method: "PATCH",
+
+      headers: {
+        Authorization: token,
+      },
+    });
+
+    const res = await req.json();
+
+    if (req.ok) {
+      loadPosts();
+
+      loadPopularPosts();
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}

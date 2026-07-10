@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
+    <title>My Blog</title>
+  </head>
+  <body>
+    <header>
+      <h1>NDI Blog - <span id="server-time">Loading...</span></h1>
+
+      <div class="header-right">
+        <span id="server-time" class="time-display"></span>
+
+        <button class="icon-btn" aria-label="Toggle dark mode">🌙</button>
+        <button class="icon-btn" aria-label="Notifications">🔔</button>
+
+        <button class="btn btn-outline" id="loginOpenBtn">Login</button>
+
+        <button class="btn btn-primary" id="registerOpenBtn">Register</button>
+
+        <div class="user-menu" id="userMenu" style="display: none">
+          <button class="btn btn-outline" id="logoutBtn">Logout</button>
+          <div class="avatar" id="avatar">JD</div>
+          <span class="user-name" id="userName">John Doe</span>
+          <span>▾</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- ===== Main column ===== -->
+      <main>
+        <!-- Create Post -->
+        <section class="card">
+          <h2>Create a New Post</h2>
+
+          <div class="form-row">
+            <div>
+              <label for="title">Title</label>
+              <input
+                type="text"
+                id="title"
+                placeholder="Enter an engaging title..."
+              />
+            </div>
+            <div>
+              <label for="category">Category</label>
+              <select id="category">
+                <option value="">Select a category</option>
+              </select>
+            </div>
+          </div>
+
+          <label>Content</label>
+          <div class="editor-toolbar">
+            <select aria-label="Block type">
+              <option>Paragraph</option>
+              <option>Heading 1</option>
+              <option>Heading 2</option>
+            </select>
+            <button class="toolbar-btn" type="button" title="Bold">
+              <b>B</b>
+            </button>
+            <button class="toolbar-btn" type="button" title="Italic">
+              <i>I</i>
+            </button>
+            <button class="toolbar-btn" type="button" title="Underline">
+              <u>U</u>
+            </button>
+            <button class="toolbar-btn" type="button" title="Numbered list">
+              ≣
+            </button>
+            <button class="toolbar-btn" type="button" title="Bulleted list">
+              ☰
+            </button>
+            <button class="toolbar-btn" type="button" title="Quote">❝</button>
+            <button class="toolbar-btn" type="button" title="Link">🔗</button>
+            <button class="toolbar-btn" type="button" title="Image">🖼️</button>
+            <button class="toolbar-btn" type="button" title="Undo">↶</button>
+            <button class="toolbar-btn" type="button" title="Redo">↷</button>
+          </div>
+          <div
+            class="editor-content"
+            contenteditable="true"
+            data-placeholder="Write your post content here..."
+          ></div>
+
+          <div class="form-actions">
+            <button class="btn btn-outline" id="saveDraftBtn">
+              Save Draft
+            </button>
+            <button class="btn btn-primary" id="publishBtn">
+              Publish Post
+            </button>
+          </div>
+        </section>
+
+        <!-- Post 1 -->
+        <div id="postsContainer"></div>
+      </main>
+
+      <!-- ===== Sidebar ===== -->
+      <aside class="sidebar">
+        <section class="card">
+          <h3>About</h3>
+          <p>
+            Welcome to my blog! I write about life, travel, and everything in
+            between.
+          </p>
+        </section>
+
+        <section class="card">
+          <h3>Categories</h3>
+          <div class="category-list" id="categoryList">
+            <div class="category-item active">All Posts</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Popular Posts</h3>
+
+          <div id="popularPosts">Loading...</div>
+        </section>
+      </aside>
+    </div>
+
+    <div class="modal" id="authModal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+
+        <h2 id="modalTitle">Login</h2>
+
+        <div id="registerFields" style="display: none">
+          <label>Name</label>
+          <input type="text" id="name" placeholder="Full Name" />
+        </div>
+
+        <label>Email</label>
+        <input type="email" id="email" placeholder="Email" />
+
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Password" />
+
+        <button class="btn btn-primary" id="submitAuth">Login</button>
+
+        <p id="authMessage"></p>
+      </div>
+    </div>
+
+ 
+  </body>
+</html>
