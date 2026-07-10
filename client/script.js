@@ -324,11 +324,22 @@ async function loadPosts() {
 
     const posts = await req.json();
 
-    const postsContainer = document.getElementById("postsContainer");
+console.log(posts);
 
-    postsContainer.innerHTML = "";
+if (!req.ok) {
+  console.error(posts);
+  alert(posts.message || "Failed to load posts");
+  return;
+}
 
-    posts.forEach((post) => {
+if (!Array.isArray(posts)) {
+  console.error(posts);
+  return;
+}
+
+postsContainer.innerHTML = "";
+
+posts.forEach((post) => {
       const article = document.createElement("article");
 
       article.className = "card";
