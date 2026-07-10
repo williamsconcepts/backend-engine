@@ -21,15 +21,16 @@
         <button class="icon-btn" aria-label="Toggle dark mode">🌙</button>
         <button class="icon-btn" aria-label="Notifications">🔔</button>
 
-        <button class="btn btn-outline" id="loginOpenBtn">Login</button>
+        <button class="btn btn-outline" id="loginOpenBtn">🔐 Login</button>
 
         <button class="btn btn-primary" id="registerOpenBtn">Register</button>
 
         <div class="user-menu" id="userMenu" style="display: none">
-          <button class="btn btn-outline" id="logoutBtn">Logout</button>
-          <div class="avatar" id="avatar">JD</div>
-          <span class="user-name" id="userName">John Doe</span>
-          <span>▾</span>
+          <div class="avatar" id="avatar"></div>
+
+          <span class="user-name" id="userName"></span>
+
+          <button id="logoutBtn" class="btn btn-outline">Logout</button>
         </div>
       </div>
     </header>
@@ -103,7 +104,13 @@
         </section>
 
         <!-- Post 1 -->
-        <div id="postsContainer"></div>
+        <div id="postsContainer">
+          <div class="card">
+            <h3>No posts yet</h3>
+
+            <p>Create the first post.</p>
+          </div>
+        </div>
       </main>
 
       <!-- ===== Sidebar ===== -->
@@ -153,5 +160,9 @@
         <p id="authMessage"></p>
       </div>
     </div>
+
+    <hr />
+
+    <p style="text-align: center">Welcome to the NDI Community Blog</p>
   </body>
 </html>

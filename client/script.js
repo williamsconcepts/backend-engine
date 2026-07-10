@@ -145,6 +145,8 @@ function loginSuccess(user) {
 
   document.getElementById("userName").innerText = user.name;
 
+  document.getElementById("createPostCard").style.display = "block";
+
   document.getElementById("avatar").innerText =
     user.name.substring(0, 2).toUpperCase();
 }
