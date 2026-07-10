@@ -1,5 +1,7 @@
 const API = "http://localhost:4000";
 
+const socket = io(API);
+
 /* ===========================
    SERVER TIME (SSE)
 =========================== */
@@ -121,33 +123,38 @@ submitBtn.onclick = async () => {
   if (req.ok && mode === "login") {
     localStorage.setItem("accessToken", res.accessToken);
 
-    loginSuccess(email);
-    loadCategories();
+localStorage.setItem("user", JSON.stringify(res.user));
 
-    modal.classList.remove("active");
+loginSuccess(res.user);
+
+loadCategories();
+
+loadPosts();
+
+loadPopularPosts();
+
+modal.classList.remove("active");
   }
 };
 
-function loginSuccess(email) {
+function loginSuccess(user) {
   loginBtn.style.display = "none";
-
   registerBtn.style.display = "none";
 
   document.getElementById("userMenu").style.display = "flex";
 
-  document.getElementById("userName").innerText = email;
+  document.getElementById("userName").innerText = user.name;
 
-  document.getElementById("avatar").innerText = email
-    .substring(0, 2)
-    .toUpperCase();
+  document.getElementById("avatar").innerText =
+    user.name.substring(0, 2).toUpperCase();
 }
 
 const token = localStorage.getItem("accessToken");
 
-if (token) {
-  const user = JSON.parse(atob(token));
+const user = JSON.parse(localStorage.getItem("user"));
 
-  loginSuccess(user.email);
+if (token && user) {
+  loginSuccess(user);
 
   loadCategories();
 

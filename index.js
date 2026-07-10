@@ -5,9 +5,19 @@ import postRoutes from "./routes/posts.js";
 import categoriesRoutes from "./routes/categories.js";
 import commentRoutes from "./routes/comments.js";
 import { requireAuth } from "./middlewares/auth.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+const webSocketServer = createServer(app);
+const webSocket = new Server(webSocketServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(cors());
 app.use(express.json());
@@ -18,8 +28,15 @@ app.use((req, _res, next) => {
   next();
 });
 
-app.get("/polling", async (req, res) => {
-  return res.json({ message: new Date() });
+// app.get("/polling", async (req, res) => {
+//   return res.json({ message: new Date() });
+// });
+
+webSocket.on("connection", (socket) => {
+  socket.on("Update", (data) => {
+    console.log(data);
+    webSocket.emit("reply", "Received message:" + data);
+  });
 });
 
 app.get("/sse", (req, res) => {
@@ -69,6 +86,6 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(PORT, () => {
+webSocketServer.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });

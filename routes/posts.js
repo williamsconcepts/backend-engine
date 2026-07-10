@@ -29,7 +29,6 @@ app.post("/posts/create", requireAuth, async (req, res) => {
       title,
       postContent,
       categoryId,
-      likes: 0,
     });
 
     res.status(200).json({
@@ -71,37 +70,58 @@ app.get("/posts", requireAuth, async (req, res) => {
     // initialize comments as an empty array
 
     for (const post of postQuery) {
-      if (!posts[post.id]) {
-        posts[post.id] = {
-          id: post.id,
-          title: post.title,
-          postContent: post.postContent,
-          categoryId: post.categoryId,
-          category: post.category,
-          likes: post.likes,
-          created_at: post.created_at,
-          comments: [],
-        };
-        // store the result in order
-        order.push(post.id);
-      }
-
-      // get the latest comments, orderBy Id and limit by 2
-      const latestComments = await db("comments")
+      const likeCount = await db("postsLikes")
         .where({ postId: post.id })
-        .orderBy("id", "desc")
+        .count("* as total")
+        .first();
+
+      const userLike = await db("postsLikes")
+        .where({
+          postId: post.id,
+          userId: req.user.id,
+        })
+        .first();
+
+      const commentCount = await db("comments")
+        .where({
+          postId: post.id,
+        })
+        .count("* as total")
+        .first();
+
+      const latestComments = await db("comments")
+        .leftJoin("users", "comments.userId", "users.id")
+        .where({
+          postId: post.id,
+        })
+        .select("comments.id", "comments.comment", "users.name as userName")
+        .orderBy("comments.id", "desc")
         .limit(5);
 
-      // if the current post includes a comment, add it to that post's comments array
-      for (const comment of latestComments) {
-        posts[post.id].comments.push({
-          id: comment.id,
-          comment: comment.comment,
-          userName: comment.userName,
-        });
-      }
-    }
+      posts[post.id] = {
+        id: post.id,
 
+        title: post.title,
+
+        postContent: post.postContent,
+
+        categoryId: post.categoryId,
+
+        category: post.category,
+
+        likes: Number(likeCount.total),
+
+        liked: !!userLike,
+
+        commentCount: Number(commentCount.total),
+
+        created_at: post.created_at,
+
+        comments: latestComments,
+      };
+
+      order.push(post.id);
+    }
     // run a callback on each posts item in our order and store in a variable called ordered
     const ordered = order.map((item) => posts[item]);
 
@@ -139,7 +159,10 @@ app.delete("/posts/:id", async (req, res) => {
       });
     }
 
+    await db("postsLikes").where({ postId: id }).delete();
+
     await db("comments").where({ postId: id }).delete();
+
     await db("posts").where({ id }).delete();
 
     return res.status(200).json({
@@ -157,15 +180,29 @@ app.delete("/posts/:id", async (req, res) => {
 app.get("/posts/popular", async (req, res) => {
   try {
     const posts = await db("posts")
-      .orderBy(
-        "likes",
+      .leftJoin("categories", "posts.categoryId", "categories.id")
+      .select("posts.id", "posts.title", "categories.title as category");
 
-        "desc",
-      )
+    const popular = [];
 
-      .limit(3);
+    for (const post of posts) {
+      const likes = await db("postsLikes")
+        .where({
+          postId: post.id,
+        })
+        .count("* as total")
+        .first();
 
-    res.json(posts);
+      popular.push({
+        ...post,
+
+        likes: Number(likes.total),
+      });
+    }
+
+    popular.sort((a, b) => b.likes - a.likes);
+
+    res.json(popular.slice(0, 3));
   } catch (error) {
     console.log(error);
 
@@ -176,16 +213,11 @@ app.get("/posts/popular", async (req, res) => {
 });
 
 // likes
-app.patch("/posts/:id/like", async (req, res) => {
+app.patch("/posts/:id/like", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const post = await db("posts")
-      .where({
-        id,
-      })
-
-      .first();
+    const post = await db("posts").where({ id }).first();
 
     if (!post) {
       return res.status(404).json({
@@ -193,23 +225,43 @@ app.patch("/posts/:id/like", async (req, res) => {
       });
     }
 
-    await db("posts")
+    const existingLike = await db("postsLikes")
       .where({
-        id,
+        postId: id,
+        userId: req.user.id,
       })
+      .first();
 
-      .increment(
-        "likes",
+    if (existingLike) {
+      await db("postsLikes")
+        .where({
+          postId: id,
+          userId: req.user.id,
+        })
+        .delete();
 
-        1,
-      );
+      return res.json({
+        message: "Post unliked",
+        liked: false,
+      });
+    }
 
-    res.json({
+    await db("postsLikes").insert({
+      postId: id,
+
+      userId: req.user.id,
+    });
+
+    return res.json({
       message: "Post liked",
+
+      liked: true,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
-      message: "Failed liking post",
+      message: "Failed updating like",
     });
   }
 });
