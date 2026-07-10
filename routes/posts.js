@@ -153,4 +153,65 @@ app.delete("/posts/:id", async (req, res) => {
   }
 });
 
+// popular posts
+app.get("/posts/popular", async (req, res) => {
+  try {
+    const posts = await db("posts")
+      .orderBy(
+        "likes",
+
+        "desc",
+      )
+
+      .limit(3);
+
+    res.json(posts);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: "Failed loading popular posts",
+    });
+  }
+});
+
+// likes
+app.patch("/posts/:id/like", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const post = await db("posts")
+      .where({
+        id,
+      })
+
+      .first();
+
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+
+    await db("posts")
+      .where({
+        id,
+      })
+
+      .increment(
+        "likes",
+
+        1,
+      );
+
+    res.json({
+      message: "Post liked",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed liking post",
+    });
+  }
+});
+
 export default app;

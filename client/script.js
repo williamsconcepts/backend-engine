@@ -411,7 +411,7 @@ async function loadPosts() {
 }
 
 /* ===========================
-   POPULA POSTS
+   POPULAR POSTS
 =========================== */
 async function loadPopularPosts() {
   try {

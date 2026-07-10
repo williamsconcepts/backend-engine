@@ -4,8 +4,6 @@ import userRoutes from "./routes/user.js";
 import postRoutes from "./routes/posts.js";
 import categoriesRoutes from "./routes/categories.js";
 import commentRoutes from "./routes/comments.js";
-import popularRoutes from "./routes/popularPosts.js";
-import likeRoutes from "./routes/likes.js";
 import { requireAuth } from "./middlewares/auth.js";
 
 const app = express();
@@ -61,8 +59,6 @@ app.use("/", postRoutes);
 app.use("/", categoriesRoutes);
 app.use("/", commentRoutes);
 app.use("/", userRoutes);
-app.use("/", popularRoutes);
-app.use("/", likeRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Route not found" });
