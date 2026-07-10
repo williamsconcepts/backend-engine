@@ -21,7 +21,7 @@ app.post("/comment/create", requireAuth, async (req, res) => {
 
     if (!post) {
       return res.status(404).json({
-        message: "Post not found",
+        message: "Invalid post ID",
       });
     }
 
@@ -31,11 +31,11 @@ app.post("/comment/create", requireAuth, async (req, res) => {
       userId: req.user.id,
     });
 
-    return res.status(201).json({
-      message: "Comment posted successfully",
+    return res.json({
+      message: "Comment posted",
     });
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
 
     return res.status(500).json({
       message: "Failed to post comment",

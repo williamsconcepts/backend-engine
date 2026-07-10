@@ -398,27 +398,20 @@ posts.forEach((post) => {
         : "<p>No comments yet.</p>"
     }
 
-    <div class="comment-form">
+<div class="comment-form">
 
-        <input
-            type="text"
-            id="name-${post.id}"
-            placeholder="Your name"
-        >
+    <textarea
+        id="comment-${post.id}"
+        placeholder="Write a comment..."
+    ></textarea>
 
-        <textarea
-            id="comment-${post.id}"
-            placeholder="Write a comment..."
-        ></textarea>
+    <button
+        class="btn btn-primary"
+        onclick="addComment(${post.id})">
+        Post Comment
+    </button>
 
-        <button
-            class="btn btn-primary"
-            onclick="addComment(${post.id})"
-        >
-            Post Comment
-        </button>
-
-    </div>
+</div>
 
 </div>
             `;
@@ -482,35 +475,28 @@ async function addComment(postId) {
 
   if (!token) {
     alert("Please login.");
-
     return;
   }
 
-  const userName = document.getElementById(`name-${postId}`).value.trim();
+  const comment = document
+    .getElementById(`comment-${postId}`)
+    .value
+    .trim();
 
-  const comment = document.getElementById(`comment-${postId}`).value.trim();
-
-  if (!userName || !comment) {
-    alert("Please complete all fields.");
-
+  if (!comment) {
+    alert("Please enter a comment.");
     return;
   }
 
   try {
     const req = await fetch(`${API}/comment/create`, {
       method: "POST",
-
       headers: {
         "Content-Type": "application/json",
-
         Authorization: token,
       },
-
       body: JSON.stringify({
         postId,
-
-        userName,
-
         comment,
       }),
     });

@@ -1,42 +1,31 @@
 import db from "../db.js";
 
 export const requireAuth = async (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+
   try {
-    const token = req.headers.authorization;
+    const payload = JSON.parse(atob(token));
 
-    if (!token) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
-    }
-
-    // Find the user with this access token
-    const user = await db("users")
-      .where({
-        accessToken: token,
-      })
-      .first();
+    const user = await db("users").where({ email: payload.email }).first();
 
     if (!user) {
       return res.status(401).json({
-        message: "Invalid access token",
+        message: "Invalid token",
       });
     }
 
-    // Attach the authenticated user to the request
-    req.user = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
+    req.user = user;
 
     next();
-  } catch (error) {
-    console.log(error);
-
-    return res.status(500).json({
-      message: "Authentication failed",
+  } catch (err) {
+    return res.status(401).json({
+      message: "Invalid token",
     });
   }
 };

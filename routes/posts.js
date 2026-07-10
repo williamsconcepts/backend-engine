@@ -57,7 +57,6 @@ app.get("/posts", requireAuth, async (req, res) => {
         "posts.postContent",
         "posts.categoryId",
         "categories.title as category",
-        "posts.likes",
         "posts.created_at",
       )
       .orderBy("posts.created_at", s);
@@ -83,17 +82,13 @@ app.get("/posts", requireAuth, async (req, res) => {
         .first();
 
       const commentCount = await db("comments")
-        .where({
-          postId: post.id,
-        })
+        .where("comments.postId", post.id)
         .count("* as total")
         .first();
 
       const latestComments = await db("comments")
         .leftJoin("users", "comments.userId", "users.id")
-        .where({
-          postId: post.id,
-        })
+        .where({ postId: post.id })
         .select("comments.id", "comments.comment", "users.name as userName")
         .orderBy("comments.id", "desc")
         .limit(5);
