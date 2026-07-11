@@ -46,6 +46,14 @@ const publishBtn = document.getElementById("publishBtn");
 
 const postsContainer = document.getElementById("postsContainer");
 
+const chatInput = document.getElementById("chatInput");
+const sendChatBtn = document.getElementById("sendChatBtn");
+const chatMessages = document.getElementById("chatMessages");
+
+const chatWidget = document.getElementById("chatWidget");
+const chatToggle = document.getElementById("chatToggle");
+const closeChat = document.getElementById("closeChat");
+
 let mode = "login";
 
 if (logoutBtn) {
@@ -123,17 +131,17 @@ submitBtn.onclick = async () => {
   if (req.ok && mode === "login") {
     localStorage.setItem("accessToken", res.accessToken);
 
-localStorage.setItem("user", JSON.stringify(res.user));
+    localStorage.setItem("user", JSON.stringify(res.user));
 
-loginSuccess(res.user);
+    loginSuccess(res.user);
 
-loadCategories();
+    loadCategories();
 
-loadPosts();
+    loadPosts();
 
-loadPopularPosts();
+    loadPopularPosts();
 
-modal.classList.remove("active");
+    modal.classList.remove("active");
   }
 };
 
@@ -147,8 +155,9 @@ function loginSuccess(user) {
 
   document.getElementById("createPostCard").style.display = "block";
 
-  document.getElementById("avatar").innerText =
-    user.name.substring(0, 2).toUpperCase();
+  document.getElementById("avatar").innerText = user.name
+    .substring(0, 2)
+    .toUpperCase();
 }
 
 const token = localStorage.getItem("accessToken");
@@ -170,6 +179,56 @@ document.getElementById("logoutBtn").onclick = () => {
 
   location.reload();
 };
+
+// chat box
+
+chatToggle.onclick = () => {
+  chatWidget.classList.remove("collapsed");
+  chatToggle.style.display = "none";
+};
+
+closeChat.onclick = () => {
+  chatWidget.classList.add("collapsed");
+
+  chatToggle.style.display = "flex";
+};
+
+sendChatBtn.onclick = () => {
+  const text = chatInput.value.trim();
+
+  if (!text) return;
+
+  const user = JSON.parse(atob(localStorage.getItem("accessToken")));
+
+  socket.emit("chat-message", {
+    user: user.name,
+    text: text,
+  });
+
+  chatInput.value = "";
+};
+
+socket.on("chat-message", (message) => {
+  chatMessages.innerHTML += `
+            <div class="message">
+
+            <strong>${message.user}</strong>
+
+            <p>${message.text}</p>
+
+            <small>${message.time}</small>
+
+        </div>
+        
+  `;
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+
+chatInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    sendChatBtn.click();
+  }
+});
 
 /* ===========================
    CATEGORIES
@@ -324,22 +383,22 @@ async function loadPosts() {
 
     const posts = await req.json();
 
-console.log(posts);
+    console.log(posts);
 
-if (!req.ok) {
-  console.error(posts);
-  alert(posts.message || "Failed to load posts");
-  return;
-}
+    if (!req.ok) {
+      console.error(posts);
+      alert(posts.message || "Failed to load posts");
+      return;
+    }
 
-if (!Array.isArray(posts)) {
-  console.error(posts);
-  return;
-}
+    if (!Array.isArray(posts)) {
+      console.error(posts);
+      return;
+    }
 
-postsContainer.innerHTML = "";
+    postsContainer.innerHTML = "";
 
-posts.forEach((post) => {
+    posts.forEach((post) => {
       const article = document.createElement("article");
 
       article.className = "card";
@@ -478,10 +537,7 @@ async function addComment(postId) {
     return;
   }
 
-  const comment = document
-    .getElementById(`comment-${postId}`)
-    .value
-    .trim();
+  const comment = document.getElementById(`comment-${postId}`).value.trim();
 
   if (!comment) {
     alert("Please enter a comment.");

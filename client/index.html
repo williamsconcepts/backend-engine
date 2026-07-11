@@ -23,7 +23,9 @@
 
         <button class="btn btn-outline" id="loginOpenBtn">🔐 Login</button>
 
-        <button class="btn btn-primary" id="registerOpenBtn">Register</button>
+        <button class="btn btn-primary" id="registerOpenBtn">
+          🔐 Register
+        </button>
 
         <div class="user-menu" id="userMenu" style="display: none">
           <div class="avatar" id="avatar"></div>
@@ -136,6 +138,26 @@
           <div id="popularPosts">Loading...</div>
         </section>
       </aside>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <div class="chat-toggle" id="chatToggle">💬</div>
+
+    <!-- Chat Window -->
+    <div class="chat-widget collapsed" id="chatWidget">
+      <div class="chat-header">
+        <span>💬 Live Chat</span>
+
+        <button id="closeChat">✖</button>
+      </div>
+
+      <div id="chatMessages" class="chat-messages"></div>
+
+      <div class="chat-input">
+        <input id="chatInput" placeholder="Type message..." />
+
+        <button id="sendChatBtn">Send</button>
+      </div>
     </div>
 
     <div class="modal" id="authModal">

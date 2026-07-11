@@ -474,3 +474,135 @@ select {
 .like-btn:hover {
   transform: scale(1.05);
 }
+
+.chat-toggle {
+  position: fixed;
+
+  bottom: 25px;
+
+  right: 25px;
+
+  width: 60px;
+
+  height: 60px;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 28px;
+
+  cursor: pointer;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+
+  z-index: 999;
+}
+
+.chat-widget {
+  position: fixed;
+
+  bottom: 100px;
+
+  right: 25px;
+
+  width: 340px;
+
+  height: 450px;
+
+  background: white;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  display: flex;
+
+  flex-direction: column;
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+
+  transition: 0.3s;
+
+  z-index: 999;
+}
+
+.chat-widget.collapsed {
+  opacity: 0;
+
+  visibility: hidden;
+
+  transform: translateY(40px) scale(0.9);
+}
+
+.chat-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  background: #2563eb;
+
+  color: white;
+
+  padding: 15px;
+}
+
+.chat-header button {
+  border: none;
+
+  background: none;
+
+  color: white;
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+.chat-messages {
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding: 15px;
+
+  background: #f7f7f7;
+}
+
+.chat-input {
+  display: flex;
+
+  border-top: 1px solid #ddd;
+}
+
+.chat-input input {
+  flex: 1;
+
+  border: none;
+
+  padding: 12px;
+
+  outline: none;
+}
+
+.chat-input button {
+  width: 80px;
+
+  border: none;
+
+  background: #2563eb;
+
+  color: white;
+
+  cursor: pointer;
+}

@@ -33,9 +33,20 @@ app.use((req, _res, next) => {
 // });
 
 webSocket.on("connection", (socket) => {
-  socket.on("Update", (data) => {
-    console.log(data);
-    webSocket.emit("reply", "Received message:" + data);
+  console.log("User connected");
+
+  socket.on("chat-message", (message) => {
+    console.log(message);
+
+    webSocket.emit("chat-message", {
+      user: message.user,
+      text: message.text,
+      time: new Date().toLocaleDateString(),
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
   });
 });
 
